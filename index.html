@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Mental Debugger 🛠️</title>
+    <!-- פונטים -->
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --bg-color: #0f172a;
@@ -12,6 +18,7 @@
             --accent-cyan: #38bdf8;
             --accent-green: #4ade80;
             --accent-purple: #c084fc;
+            --accent-amber: #fbbf24;
             --accent-red: #f87171;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
@@ -38,7 +45,7 @@
 
         .container {
             width: 100%;
-            max-width: 680px;
+            max-width: 720px;
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 16px;
@@ -64,6 +71,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            direction: ltr;
         }
 
         .window-dots {
@@ -118,6 +126,8 @@
             font-size: 0.9rem;
             margin-bottom: 8px;
             font-weight: 600;
+            direction: ltr;
+            text-align: left;
         }
 
         h2 {
@@ -145,7 +155,7 @@
             color: var(--accent-cyan);
         }
 
-        textarea, input[type="text"] {
+        textarea, input[type="text"], input[type="date"], select {
             width: 100%;
             background-color: #0f172a;
             border: 1px solid var(--border-color);
@@ -158,7 +168,7 @@
             resize: vertical;
         }
 
-        textarea:focus, input[type="text"]:focus {
+        textarea:focus, input[type="text"]:focus, select:focus {
             border-color: var(--accent-cyan);
             box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
         }
@@ -173,10 +183,17 @@
             line-height: 1.5;
         }
 
+        .prompt-box.warning {
+            background-color: rgba(251, 191, 36, 0.08);
+            border-right-color: var(--accent-amber);
+        }
+
         .btn-container {
             display: flex;
             justify-content: space-between;
             margin-top: 32px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -187,7 +204,7 @@
             border: none;
             font-size: 1rem;
             transition: all 0.2s;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
@@ -213,17 +230,20 @@
             background-color: #334155;
         }
 
+        /* LTR Code Blocks */
         .code-block {
             background-color: #090d16;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 16px;
             font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             color: var(--accent-green);
             margin-bottom: 20px;
             white-space: pre-wrap;
             line-height: 1.6;
+            direction: ltr;
+            text-align: left;
         }
 
         .badge-success {
@@ -236,6 +256,47 @@
             font-size: 0.85rem;
             font-weight: 600;
             margin-bottom: 16px;
+            direction: ltr;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .history-card {
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-right: 4px solid var(--accent-purple);
+        }
+
+        .history-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            direction: ltr;
+            text-align: right;
+            margin-bottom: 6px;
+        }
+
+        .history-tag {
+            display: inline-block;
+            background-color: rgba(192, 132, 252, 0.15);
+            color: var(--accent-purple);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -248,7 +309,7 @@
             <span class="dot yellow"></span>
             <span class="dot green"></span>
         </div>
-        <div class="title">🛠️ MentalDebugger.exe</div>
+        <div class="title">🛠️ MentalDebugger.exe v2.0</div>
     </div>
     
     <div class="progress-bar-container">
@@ -257,32 +318,50 @@
 
     <div class="content">
         
-        <!-- STEP 1: EVENT (האירוע) -->
+        <!-- STEP 1: INPUT EVENT (האירוע העובדתי) -->
         <div class="step active" id="step1">
-            <div class="step-number">// STEP 01: INPUT_EVENT</div>
-            <h2>מה קרה בקוד?</h2>
-            <p class="desc">תאר/י בקצרה את האירוע העובדתי שגרם לתסכול במעבדה.</p>
+            <div class="step-number">// STEP 01: INPUT_REALITY_EVENT</div>
+            <h2>מה האירוע העובדתי במעבדה? 💻</h2>
             
+            <div class="prompt-box">
+                ℹ️ <strong>שימו לב:</strong> כאן כותבים אך ורק את <strong>העובדה היבשה</strong> שהתרחשה (למשל: "הופיעה שגיאה אדומה בקוד" או "התרגיל דורש פירוק לשני מודולים"). את המחשבות והרגשות נכניס בשלב הבא!
+            </div>
+
             <div class="input-group">
-                <label for="eventInput">האירוע העובדתי (לדוגמה: "הופיעה הודעת שגיאה אדומה 4 פעמים"):</label>
-                <textarea id="eventInput" rows="3" placeholder="הקוד לא רץ / יש באג בלופ / לא הבנתי את התרגיל..."></textarea>
+                <label for="eventInput">האירוע העובדתי (ללא שיפוטיות או פרשנות):</label>
+                <textarea id="eventInput" rows="3" placeholder="דוגמה: הקוד החזיר הודעת SyntaxError בשורה 14 / לא הצלחתי להריץ את הלולאה..."></textarea>
             </div>
 
             <div class="btn-container">
-                <div></div>
-                <button class="btn btn-primary" onclick="nextStep(2)">המשך להרצת ה-Debugger ➔</button>
+                <button class="btn btn-secondary" onclick="openHistoryView()">📊 היסטוריית באגים ועיוותים</button>
+                <button class="btn btn-primary" onclick="nextStep(2)">המשך לזיהוי הבאג החשיבתי ➔</button>
             </div>
         </div>
 
-        <!-- STEP 2: AUTOMATIC THOUGHT (הפרשנות האוטומטית) -->
+        <!-- STEP 2: COGNITIVE BUG (הבאג החשיבתי) -->
         <div class="step" id="step2">
-            <div class="step-number">// STEP 02: AUTOMATIC_THOUGHT</div>
-            <h2>מה המחשבה האוטומטית שעברה בראש?</h2>
-            <p class="desc">כשאנחנו נתקלים בבאג, המוח מריץ לעיתים "משקפיים מטושטשות" או מחשבה אוטומטית מעכבת.</p>
+            <div class="step-number">// STEP 02: COGNITIVE_BUG_IDENTIFICATION</div>
+            <h2>זיהוי הבאג החשיבתי (המחשבה האוטומטית) 🧠</h2>
             
+            <div class="prompt-box warning">
+                ⚠️ <strong>מזהים את הבאג בראש:</strong> כאן <strong>לא</strong> מדובר על השגיאה בקוד של המחשב, אלא על <strong>הבאג החשיבתי</strong> שעלה בראשכם מול המצב (למשל: "אני לא מספיק טובה", "זה בלתי אפשרי", "כולם מבינים ורק אני גרוע").
+            </div>
+
             <div class="input-group">
-                <label for="thoughtInput">המחשבה האוטומטית (לדוגמה: "אני לא מספיק טובה / זה בלתי אפשרי"):</label>
-                <textarea id="thoughtInput" rows="3" placeholder="אני לעולם לא אבין את זה / כולם מבינים ורק אני גרוע..."></textarea>
+                <label for="bugCategory">סוג עיוות החשיבה (הבאג החשיבתי):</label>
+                <select id="bugCategory">
+                    <option value="חשיבה של הכל או לא כלום">חשיבה של הכל או לא כלום ("אם זה לא עובד מכה ראשונה - נכשיל")</option>
+                    <option value="חשיבה רגשית">חשיבה רגשית ("אני מרגיש תסכול, אז אני בטח טיפש")</option>
+                    <option value="הכללת יתר">הכללת יתר ("תמיד הקוד שלי נחרב")</option>
+                    <option value="פסילת החיובי">פסילת החיובי ("הצלחתי רק כי עזרו לי, אני לא באמת יודע")</option>
+                    <option value="קריאת מחשבות">קריאת מחשבות ("המרצה/המורה חושב/ת שאני גרוע/ה")</option>
+                    <option value="אחר / לא מוגדר">אחר / מחשבה מעכבת כללית</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="thoughtInput">המחשבה השלילית השגויה שעברה בראש:</label>
+                <textarea id="thoughtInput" rows="3" placeholder="אני לעולם לא אבין את האלגוריתם הזה / עדיף כבר לוותר ולהרים ידיים..."></textarea>
             </div>
 
             <div class="btn-container">
@@ -291,21 +370,21 @@
             </div>
         </div>
 
-        <!-- STEP 3: SOCRATIC QUESTIONING (התשאול הסוקרטי) -->
+        <!-- STEP 3: SOCRATIC DEBUGGING (התשאול הסוקרטי) -->
         <div class="step" id="step3">
             <div class="step-number">// STEP 03: SOCRATIC_DEBUGGING</div>
             <h2>מריצים תשאול סוקרטי על המחשבה 🔍</h2>
-            <p class="desc">בחר/י שאלה אחת או יותר שיעזרו לך לערער על המחשבות השליליות ולהביט מחדש בעובדות:</p>
+            <p class="desc">בוחרים שאלה סוקרטית ומערערים על הפרשנות האוטומטית:</p>
             
             <div class="prompt-box">
                 <strong>🔍 בלש הראיות:</strong> האם המחשבה הזו היא עובדה מוחלטת או הרגשה רגעית? אילו הוכחות יש לך בעדה ונגדה?<br><br>
-                <strong>🤝 מבחן החבר:</strong> אם חבר/ה בכיתה היו נתקלים בבאג הזה, מה היית אומר/ת להם?<br><br>
-                <strong>📐 פרופורציות:</strong> האם באג אחד אומר שאינך יודע/ת לתכנת, או שזה פשוט אתגר שמצריך פירוק מחדש?
+                <strong>🤝 מבחן החבר:</strong> אם חבר/ה בכיתה היו נתקלים בבאג הזה, האם היית אומר/ת להם שהוא/היא 'כישלון'?<br><br>
+                <strong>📐 בדיקת יעילות:</strong> האם המחשבה 'זה בלתי אפשרי' עוזרת לך לפתור את הקוד או תוקעת אותך?
             </div>
 
             <div class="input-group">
-                <label for="socraticAnswer">מה הראיות או התובנות שגילית בערעור המחשבה?</label>
-                <textarea id="socraticAnswer" rows="3" placeholder="כשאני חושב/ת על זה, כבר פתרתי בעיות מורכבות בעבר... / אם חבר היה נתקע הייתי מציע/ה לו לעצור ולבדוק שורה-שורה..."></textarea>
+                <label for="socraticAnswer">תובנות מהתשאול הסוקרטי (ערעור הפרשנות):</label>
+                <textarea id="socraticAnswer" rows="3" placeholder="כשאני בודק/ת עובדות - בעבר כבר פתרתי תרגילים מורכבים. הבאג כרגע אומר שצריך לפרק את הבעיה, לא שאני לא מסוגל/ת..."></textarea>
             </div>
 
             <div class="btn-container">
@@ -314,36 +393,34 @@
             </div>
         </div>
 
-        <!-- STEP 4: REFRAMING (הקוד המחשבתי החדש) -->
+        <!-- STEP 4: REFRAMED CODE (קוד מחשבתי חדש) -->
         <div class="step" id="step4">
             <div class="step-number">// STEP 04: REFRAMED_CODE</div>
             <h2>ניסוח "קוד מחשבתי חדש" ומקדם 💡</h2>
-            <p class="desc">החליפו את הפרשנות האוטומטית בפרשנות מאוזנת ומקדמת ובצעד קטן שניתן לעשות כעת בקוד.</p>
             
             <div class="input-group">
                 <label for="newThoughtInput">הפרשנות החדשה והמקדמת שלי:</label>
-                <textarea id="newThoughtInput" rows="2" placeholder="הקוד לא עובד כרגע וזה בסדר - זה רק אומר שזה הזמן לפרק את הבעיה לשלבים קטנים יותר."></textarea>
+                <textarea id="newThoughtInput" rows="2" placeholder="הקוד לא עובד כרגע וזה בסדר - זה רק אומר שזה הזמן לבדוק את הלוגיקה מחדש או לבצע De-bugging רגוע."></textarea>
             </div>
 
             <div class="input-group">
-                <label for="actionInput">צעד מעשי קטן שנעשה עכשיו (Action Step):</label>
-                <input type="text" id="actionInput" placeholder="אקח פסק זמן של 2 דקות / אבדוק את טבלת המעקב / אבקש הכוונה ממוקדת.">
+                <label for="actionInput">צעד מעשי קטן שנעשה עכשיו בקוד (Action Step):</label>
+                <input type="text" id="actionInput" placeholder="אקח פסק זמן של 2 דקות / אבדוק שוב את טבלת המעקב / אבקש הכוונה ממוקדת.">
             </div>
 
             <div class="btn-container">
                 <button class="btn btn-secondary" onclick="nextStep(3)">🡨 חזרה</button>
-                <button class="btn btn-primary" onclick="generateSummary()">קמפל תוצאות (Compile) ➔</button>
+                <button class="btn btn-primary" onclick="saveAndCompile()">קמפול ושמירה ל-Firebase ➔</button>
             </div>
         </div>
 
-        <!-- STEP 5: SUMMARY (קמפול והצלחה) -->
+        <!-- STEP 5: SUMMARY & COMPILE -->
         <div class="step" id="step5">
-            <div class="badge-success">✔ CODE COMPILED SUCCESSFULLY (200 OK)</div>
+            <div class="badge-success">✔ CODE COMPILED & SAVED TO FIREBASE (200 OK)</div>
             <h2>הקוד המחשבתי החדש עודכן בהצלחה! 🚀</h2>
-            <p class="desc">הנה סיכום ה-Debug המחשבתי שביצעת כעת. תוכל/י לשמור אותו או לחזור לקוד מעמדה מרוכזת ומקודמת.</p>
 
             <div class="code-block" id="codeSummary">
-// Mental Debugger Log Result
+// Mental Debugger Log Result Loading...
             </div>
 
             <div class="prompt-box" style="background-color: rgba(74, 222, 128, 0.08); border-right-color: var(--accent-green);">
@@ -351,8 +428,37 @@
             </div>
 
             <div class="btn-container">
-                <button class="btn btn-secondary" onclick="resetApp()">🔄 הרץ Debugger חדש</button>
-                <button class="btn btn-primary" onclick="window.print()">🖨️ הדפס / שמור כ-PDF</button>
+                <button class="btn btn-secondary" onclick="resetApp()">🔄 Debugger חדש</button>
+                <button class="btn btn-primary" onclick="openHistoryView()">📊 ניתוח עיוותי חשיבה לאורך זמן</button>
+            </div>
+        </div>
+
+        <!-- STEP 6: HISTORY & ANALYTICS VIEW -->
+        <div class="step" id="stepHistory">
+            <div class="step-number">// ANALYTICS: COGNITIVE_DISTORTIONS_TRACKER</div>
+            <h2>איתור עיוותי חשיבה עקביים לאורך זמן 📊</h2>
+            <p class="desc">סינון היסטוריית ה-Debug לפי טווח תאריכים לזיהוי דפוסים חוזרים:</p>
+
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label style="font-size: 0.85rem;">מתאריך:</label>
+                    <input type="date" id="filterFromDate">
+                </div>
+                <div class="filter-group">
+                    <label style="font-size: 0.85rem;">עד תאריך:</label>
+                    <input type="date" id="filterToDate">
+                </div>
+                <div class="filter-group" style="display:flex; align-items:flex-end;">
+                    <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="loadHistoryLogs()">סנן נתונים</button>
+                </div>
+            </div>
+
+            <div id="historyLogsContainer">
+                <!-- יטען באופן דינמי -->
+            </div>
+
+            <div class="btn-container">
+                <button class="btn btn-secondary" onclick="nextStep(1)">🡨 חזרה למריץ ה-Debugger</button>
             </div>
         </div>
 
@@ -360,39 +466,153 @@
 </div>
 
 <script>
+    // --- FIREBASE INITIALIZATION ---
+    // יש להחליף את הפרטים להלן בפרטי ה-Firebase Project שלכם במידת הצורך:
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "your-app.firebaseapp.com",
+        projectId: "your-app-id",
+        storageBucket: "your-app.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "1:123456789:web:abcdef"
+    };
+
+    let db = null;
+    try {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.firestore();
+    } catch(e) {
+        console.warn("Firebase not fully configured yet. Falling back to LocalStorage.", e);
+    }
+
     let currentStep = 1;
 
     function nextStep(step) {
         document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-        document.getElementById(`step${step}`).classList.add('active');
-        currentStep = step;
+        const target = typeof step === 'string' ? document.getElementById(step) : document.getElementById(`step${step}`);
+        if(target) target.classList.add('active');
         
-        // Update progress bar
-        const progress = (step / 5) * 100;
-        document.getElementById('progressBar').style.width = `${progress}%`;
+        if(typeof step === 'number') {
+            currentStep = step;
+            const progress = (step / 5) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
     }
 
-    function generateSummary() {
+    async function saveAndCompile() {
         const eventVal = document.getElementById('eventInput').value || 'לא צוין';
+        const bugCatVal = document.getElementById('bugCategory').value;
         const thoughtVal = document.getElementById('thoughtInput').value || 'לא צוין';
         const socraticVal = document.getElementById('socraticAnswer').value || 'לא צוין';
         const newThoughtVal = document.getElementById('newThoughtInput').value || 'לא צוין';
         const actionVal = document.getElementById('actionInput').value || 'לא צוין';
+        const timestamp = new Date();
 
+        const logData = {
+            dateStr: timestamp.toISOString().split('T')[0],
+            timestamp: timestamp.toISOString(),
+            event: eventVal,
+            bugCategory: bugCatVal,
+            automaticThought: thoughtVal,
+            socraticReflection: socraticVal,
+            newMentalCode: newThoughtVal,
+            actionStep: actionVal
+        };
+
+        // 1. שמירה ב-LocalStorage כגיבוי
+        let localLogs = JSON.parse(localStorage.getItem('mentalDebuggerLogs') || '[]');
+        localLogs.push(logData);
+        localStorage.setItem('mentalDebuggerLogs', JSON.stringify(localLogs));
+
+        // 2. שמירה ב-Firebase במידה ומוגדר
+        if(db) {
+            try {
+                await db.collection('mental_debugger_logs').add(logData);
+            } catch(err) {
+                console.error("Error saving to Firebase:", err);
+            }
+        }
+
+        // הצגת סיכום בלשון LTR
         const summaryText = 
 `/* MENTAL DEBUGGER SUMMARY REPORT */
 ------------------------------------
-[1] EVENT: "${eventVal}"
-[2] OLD_THOUGHT: "${thoughtVal}"
-[3] SOCRATIC_REFLECTION: "${socraticVal}"
+TIMESTAMP: ${timestamp.toLocaleString('he-IL')}
+EVENT: "${eventVal}"
+COGNITIVE_BUG_TYPE: "${bugCatVal}"
+AUTOMATIC_THOUGHT: "${thoughtVal}"
+SOCRATIC_REFLECTION: "${socraticVal}"
+NEW_MENTAL_CODE: "${newThoughtVal}"
+ACTION_STEP: "${actionVal}"
 ------------------------------------
-[4] NEW_MENTAL_CODE: "${newThoughtVal}"
-[5] ACTION_STEP: "${actionVal}"
-------------------------------------
-STATUS: Mental state reframed. Ready to code!`;
+STATUS: Mental state reframed & logged successfully.`;
 
         document.getElementById('codeSummary').innerText = summaryText;
         nextStep(5);
+    }
+
+    function openHistoryView() {
+        nextStep('stepHistory');
+        // ברירת מחדל: 30 ימים אחרונים
+        const today = new Date();
+        const past = new Date();
+        past.setDate(today.getDate() - 30);
+        
+        document.getElementById('filterToDate').value = today.toISOString().split('T')[0];
+        document.getElementById('filterFromDate').value = past.toISOString().split('T')[0];
+        
+        loadHistoryLogs();
+    }
+
+    function loadHistoryLogs() {
+        const fromDate = document.getElementById('filterFromDate').value;
+        const toDate = document.getElementById('filterToDate').value;
+        const container = document.getElementById('historyLogsContainer');
+        container.innerHTML = '';
+
+        let logs = JSON.parse(localStorage.getItem('mentalDebuggerLogs') || '[]');
+        
+        // סינון תאריכים
+        const filtered = logs.filter(log => {
+            if(!log.dateStr) return true;
+            return log.dateStr >= fromDate && log.dateStr <= toDate;
+        });
+
+        if(filtered.length === 0) {
+            container.innerHTML = '<p class="desc" style="text-align:center;">לא נמצאו תיעודי עיוותי חשיבה בטווח התאריכים הנבחר.</p>';
+            return;
+        }
+
+        // ניתוח דפוסים נפוצים
+        const categoriesCount = {};
+        filtered.forEach(item => {
+            const cat = item.bugCategory || 'כללי';
+            categoriesCount[cat] = (categoriesCount[cat] || 0) + 1;
+        });
+
+        let summaryHtml = '<div class="prompt-box"><strong>📊 ניתוח עיוותי חשיבה עקביים בטווח זה:</strong><br>';
+        for(let [cat, count] of Object.entries(categoriesCount)) {
+            summaryHtml += `• ${cat}: <strong>${count} פעמים</strong><br>`;
+        }
+        summaryHtml += '</div>';
+
+        container.innerHTML = summaryHtml;
+
+        // הצגת רשימת התיעודים
+        filtered.reverse().forEach(log => {
+            const card = document.createElement('div');
+            card.className = 'history-card';
+            card.innerHTML = `
+                <div class="history-date">${log.dateStr} | ${log.timestamp ? new Date(log.timestamp).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'}) : ''}</div>
+                <div class="history-tag">${log.bugCategory || 'באג חשיבתי'}</div>
+                <div><strong>אירוע:</strong> ${log.event}</div>
+                <div style="color: var(--accent-red);"><strong>מחשבה אוטומטית:</strong> ${log.automaticThought}</div>
+                <div style="color: var(--accent-green); margin-top:4px;"><strong>קוד מחשבתי חדש:</strong> ${log.newMentalCode}</div>
+            `;
+            container.appendChild(card);
+        });
     }
 
     function resetApp() {
