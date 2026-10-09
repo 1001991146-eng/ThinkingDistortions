@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Mental Debugger 🛠️ v4.0</title>
+    <title>The Mental Debugger 🛠️ v4.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     
     <!-- Firebase SDKs (Compat) -->
@@ -40,7 +40,7 @@
 
         .container {
             width: 100%;
-            max-width: 760px;
+            max-width: 800px;
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 16px;
@@ -176,7 +176,7 @@
 
 <div class="container">
     <div class="header">
-        <div class="title">🛠️ MentalDebugger.exe v4.0</div>
+        <div class="title">🛠️ MentalDebugger.exe v4.1</div>
         <div class="user-status" id="userStatusNav" style="display:none;">
             מחובר/ת כ: <span id="userEmailNav">student@school.com</span>
             <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="logout()">התנתק</button>
@@ -256,7 +256,7 @@
 
             <div class="input-group">
                 <label for="thoughtInput">המחשבה השלילית שעברה בראש:</label>
-                <textarea id="thoughtInput" rows="3" placeholder="אני לעולם לא אבין את זה..."></textarea>
+                <textarea id="thoughtInput" rows="3" placeholder="אני לעולם לא אבין את זה / אני לא יודע/ת לתכנת..."></textarea>
             </div>
 
             <div class="btn-container">
@@ -265,19 +265,45 @@
             </div>
         </div>
 
-        <!-- STEP 3: SOCRATIC DEBUGGING -->
+        <!-- STEP 3: SOCRATIC DEBUGGING (WITH COMPREHENSIVE QUESTION BANK) -->
         <div class="step" id="step3">
             <div class="step-number">// STEP 03: SOCRATIC_DEBUGGING</div>
             <h2>מריצים תשאול סוקרטי על המחשבה 🔍</h2>
             
-            <div class="prompt-box">
-                <strong>🔍 בלש הראיות:</strong> אילו הוכחות יש לך בעד ונגד המחשבה הזו?<br>
-                <strong>🤝 מבחן החבר:</strong> מה היית אומר/ת לחבר/ה טוב/ה שהיו נתקלים בבאג הזה?
+            <div class="input-group">
+                <label for="socraticQuestionSelect">בחרו שאלה סוקרטית להשראה מתוך 4 עקרונות הערעור:</label>
+                <select id="socraticQuestionSelect" onchange="applySocraticQuestion()">
+                    <option value="">-- בחר/י שאלה מתוך המאגר --</option>
+                    <optgroup label="🔍 בלש הראיות - בדיקת ראיות">
+                        <option value="האם המחשבה 'אני לא יודע לתכנת' היא עובדה מוחלטת או הרגשה רגעית? אילו הוכחות יש לי בעדה ונגדה?">האם המחשבה הזו היא עובדה מוחלטת או הרגשה רגעית? אילו הוכחות יש בעדה ונגדה?</option>
+                        <option value="אילו תרגילים או קטעי קוד כן הצלחתי לכתוב בעבר? מה עזר לי לפתור אותם?">אילו תרגילים או קטעי קוד כן הצלחתי לכתוב בעבר? מה עזר לי לפתור אותם?</option>
+                        <option value="האם יש חלקים בקוד שכן עובדים כראוי? מה הראיות לכך שהבעיה היא בכל הקוד ולא רק בשורה ספציפית?">האם יש חלקים בקוד שכן עובדים כראוי? מה הראיות לכך?</option>
+                        <option value="מה הודעת השגיאה (Error) באמת אומרת לי? האם היא אומרת 'אתה לא מתאים' או מצביעה על טעות טכנית?">מה הודעת השגיאה באמת אומרת? האם היא אומרת 'אינך מתאים/ה' או מראה טעות טכנית?</option>
+                    </optgroup>
+                    <optgroup label="🤝 מבחן החבר הטוב - חמלה ויציאה מעצמנו">
+                        <option value="אם חבר/ה טוב/ה בכיתה היו נתקלים בבאג הזה ואומרים שהם 'כישלון', מה היית אומר/ת להם?">אם חבר/ה בכיתה היו נתקלים בבאג הזה ואומרים שהם 'כישלון', מה היית אומר/ת להם?</option>
+                        <option value="איזו עצה מעשית ומרגיעה היית נותן/ת לחבר שמרגיש תקוע מול שגיאת סינטקס מעצבנת?">איזו עצה מעשית ומרגיעה היית נותן/ת לחבר שמרגיש תקוע מול שגיאת סינטקס?</option>
+                        <option value="האם היית מצפה מחבר לדעת לפתור בעיה אלגוריתמית מורכבת על הניסיון הראשון? אם לא, למה מגיעה לך חומרה כזו?">האם היית מצפה מחבר לפתור בעיה מורכבת על הניסיון הראשון? אם לא, למה מעצמך?</option>
+                        <option value="איך היית עוזר/ת לחבר לנשום עמוק ולפרק את הבעיה לתת-משימות קטנות?">איך היית עוזר/ת לחבר לנשום עמוק ולפרק את הבעיה לתת-משימות קטנות?</option>
+                    </optgroup>
+                    <optgroup label="📐 בדיקת פרופורציות - זווית ראייה רחבה">
+                        <option value="האם באג אחד או תרגיל שלא הצלחתי היום מעידים על כל היכולות שלי במחשבים, או שזו רק נקודה שדורשת פירוק?">האם באג אחד מעיד על כל היכולות שלי במחשבים, או שזו רק נקודה שדורשת פירוק?</option>
+                        <option value="כשמסתכלים על כל שנת הלימודים, כמה משמעותית תהיה התקלה הנקודתית הזו בעוד שבוע או חודש?">כמה משמעותית תהיה התקלה הנקודתית הזו בעוד שבוע או חודש?</option>
+                        <option value="האם מתכנתים מקצועיים כותבים קוד מושלם על הניסיון הראשון, או שדיבאגינג (Debugging) הוא חלק טבעי מכל פיתוח?">האם מתכנתים מקצועיים כותבים קוד מושלם מכה ראשונה, או שדיבאגינג הוא חלק מכל פיתוח?</option>
+                        <option value="מה הדבר הכי גרוע שיכול לקרות אם לא אפתור את הבאג בשעה הקרובה? האם זו אסון או הזדמנות להתייעץ?">מה הדבר הכי גרוע שיכול לקרות? האם זו אסון או הזדמנות להתייעץ וללמוד?</option>
+                    </optgroup>
+                    <optgroup label="⚡ בדיקת יעילות - בדיקת תועלת">
+                        <option value="האם המחשבה 'זה בלתי אפשרי' עוזרת ומקדמת אותי לפתרון הקוד, או שהיא מציפה וגורמת להרים ידיים?">האם המחשבה 'זה בלתי אפשרי' מקדמת אותי לפתרון, או גורמת לי להרים ידיים?</option>
+                        <option value="האם להמשיך להריץ את אותו הקוד שוב ושוב מביא תועלת, או שעדיף לעצור ולעשות מעקב יבש (Dry Run)?">האם להמשיך להריץ את אותו הקוד מביא תועלת, או שעדיף לעצור ולעשות Dry Run?</option>
+                        <option value="האם להשתולל מתסכול וסגירת הלפטופ מקרבת אותי למטרה, או שלקחת הפסקה לשתות מים תהיה פעולה יעילה יותר?">האם להשתולל מתסכול מקרבת למטרה, או שלקחת הפסקה קצרה לשתות מים תהיה פעולה יעילה?</option>
+                        <option value="האם העתקת פתרון מוכן מ-AI עוזרת לי לבנות יכולת אלגוריתמית, או שהיא פתרון זמני שפוגע בלמידה?">האם העתקת פתרון מוכן מ-AI עוזרת לי לבנות יכולת, או שהיא פתרון זמני שפוגע בלמידה?</option>
+                    </optgroup>
+                </select>
             </div>
 
             <div class="input-group">
-                <label for="socraticAnswer">תובנות מהערעור הסוקרטי:</label>
-                <textarea id="socraticAnswer" rows="3" placeholder="כשאני בודק/ת עובדות - בעבר כבר הצלחתי לפתור תרגילים מורכבים..."></textarea>
+                <label for="socraticAnswer">תובנות מהערעור הסוקרטי (תשובתך לשאלה):</label>
+                <textarea id="socraticAnswer" rows="4" placeholder="תשובתך לשאלה הסוקרטית..."></textarea>
             </div>
 
             <div class="btn-container">
@@ -286,19 +312,38 @@
             </div>
         </div>
 
-        <!-- STEP 4: REFRAMED CODE -->
+        <!-- STEP 4: REFRAMED CODE (WITH PERSPECTIVE GLASSES BANK) -->
         <div class="step" id="step4">
             <div class="step-number">// STEP 04: REFRAMED_CODE</div>
             <h2>ניסוח "קוד מחשבתי חדש" ומקדם 💡</h2>
             
             <div class="input-group">
-                <label for="newThoughtInput">הפרשנות החדשה והמקדמת שלי:</label>
-                <textarea id="newThoughtInput" rows="2" placeholder="הקוד לא עובד כרגע וזה בסדר - זה רק אומר שזה הזמן לבדוק שוב את הלוגיקה."></textarea>
+                <label for="glassesSelect">בחרו "משקפיים" ופרשנות חלופית מתוך המאגר:</label>
+                <select id="glassesSelect" onchange="applyAlternativeGlasses()">
+                    <option value="">-- בחר/י משקפיים ופרשנות חלופית --</option>
+                    <option value="משקפי סקרנות וחקר: 'בואו נראה את הבאג הזה כמו תעלומה שמחכה לפתרון – מה הקוד מנסה להגיד לי?'">👓 משקפי סקרנות וחקר: "הבאג הוא תעלומה שמחכה לפתרון – מה הקוד מנסה להגיד לי?"</option>
+                    <option value="משקפי התפתחות ולמידה: 'טעויות ושגיאות הן חלק בלתי נפרד מתהליך הלמידה – כל באג שאני פותר/ת הופך אותי למתכנת/ת טוב/ה יותר.'">👓 משקפי התפתחות ולמידה: "כל באג שאני פותר/ת הופך אותי למתכנת/ת טוב/ה יותר."</option>
+                    <option value="משקפי פרופורציה ואיזון: 'זה רק תרגיל אחד בלבד מתוך רבים, וקושי רגעי עכשיו לא מגדיר את כל היכולות שלי.'">👓 משקפי פרופורציה ואיזון: "זה תרגיל אחד מתוך רבים, וקושי רגעי לא מגדיר את היכולות שלי."</option>
+                    <option value="משקפי מיקוד וצעד-אחר-צעד: 'אני לא צריך/ה לפתור את כל המשימה בבת אחת, אלא להתמקד רק בשורה הראשונה שדורשת תיקון.'">👓 משקפי מיקוד וצעד-אחר-צעד: "אני לא צריך/ה לפתור הכל בבת אחת, אלא להתמקד בשורה הראשונה."</option>
+                    <option value="משקפי שיתופיות ועזרה הדדית: 'לבקש עזרה מחבר או להסביר למישהו אחר זו לא חולשה – זו הדרך של מתכנתים לעבוד בצוות.'">👓 משקפי שיתופיות ועזרה הדדית: "לבקש עזרה זו לא חולשה – זו הדרך של מתכנתים לעבוד בצוות."</option>
+                    <option value="משקפי ניסוי וטעייה מדעיים: 'כל הרצה של הקוד היא ניסוי מדעי – גם אם התקבלה שגיאה, קיבלתי מידע חדש שמקרב אותי לפתרון.'">👓 משקפי ניסוי וטעייה מדעיים: "כל הרצה היא ניסוי – שגיאה היא מידע חדש שמקרב לפתרון."</option>
+                    <option value="משקפי תהליך ולא רק תוצאה: 'הערך האמיתי בלמידה אינו רק קוד שעובד בסוף, אלא הדרך שבה אימנתי את המוח לפתור בעיות.'">👓 משקפי תהליך ולא רק תוצאה: "הערך האמיתי בלמידה הוא הדרך שבה אימנתי את המוח לפתור בעיות."</option>
+                    <option value="משקפי זמן והפסקה: 'לתת למוח זמן לעבד את הבעיה או לקחת הפסקה קצרה הן חלק בלתי נפרד מתהליך החשיבה והפיתוח.'">👓 משקפי זמן והפסקה: "לקחת הפסקה קצרה לתת למוח לעבד היא חלק מתהליך הפיתוח."</option>
+                    <option value="משקפי המורה הפנימי: 'מה הדבר שאני כבר יודע/ת לעשות שיכול להנחות אותי כאן, ואיזה ידע חסר לי שאני יכול/ה לחפש באופן עצמאי?'">👓 משקפי המורה הפנימי: "מה אני כבר יודע/ת לעשות שיכול להנחות אותי כאן?"</option>
+                    <option value="משקפי גילוי העצמי והמסוגלות: 'כל אתגר מורכב שעברתי בעבר בנה את המסוגלות שלי – גם הבאג הזה הוא פשוט עוד שלב בצמיחה שלי.'">👓 משקפי גילוי העצמי והמסוגלות: "כל אתגר שעברתי בנה את המסוגלות שלי – גם זה עוד שלב בצמיחה."</option>
+                    <option value="משקפי הפשטה ופירוק לגורמים: 'במקום להסתכל על כל הקוד כמכלול אחד מציף, אני אבודד רק פונקציה אחת או שורה אחת ואתמקד בה.'">👓 משקפי הפשטה ופירוק לגורמים: "במקום להסתכל על הכל כמכלול מציף, אבודד פונקציה/שורה אחת."</option>
+                    <option value="משקפי השחרור מהשלמות: 'המטרה עכשיו היא לא לכתוב קוד מושלם, אלא ליצור גרסה פועלת ראשונית וללמוד מהטעויות בדרך.'">👓 משקפי השחרור מהשלמות: "המטרה כעת היא לא קוד מושלם, אלא גרסה פועלת ראשונית."</option>
+                </select>
             </div>
 
             <div class="input-group">
-                <label for="actionInput">צעד מעשי קטן שנעשה עכשיו בקוד:</label>
-                <input type="text" id="actionInput" placeholder="אקח פסק זמן של 2 דקות / אבדוק את טבלת המעקב.">
+                <label for="newThoughtInput">הפרשנות החדשה והמקדמת שלי (קוד מחשבתי חדש):</label>
+                <textarea id="newThoughtInput" rows="3" placeholder="הקוד לא עובד כרגע וזה בסדר - זה רק אומר שזה הזמן לבדוק שוב את הלוגיקה..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label for="actionInput">צעד מעשי קטן שנעשה עכשיו בקוד (Action Step):</label>
+                <input type="text" id="actionInput" placeholder="אקח פסק זמן של 2 דקות / אבדוק את טבלת המעקב / אבודד פונקציה אחת.">
             </div>
 
             <div class="btn-container">
@@ -385,10 +430,29 @@
         document.getElementById('eventInput').value = '';
         document.getElementById('bugCategory').selectedIndex = 0;
         document.getElementById('thoughtInput').value = '';
+        document.getElementById('socraticQuestionSelect').selectedIndex = 0;
         document.getElementById('socraticAnswer').value = '';
+        document.getElementById('glassesSelect').selectedIndex = 0;
         document.getElementById('newThoughtInput').value = '';
         document.getElementById('actionInput').value = '';
         nextStep(1);
+    }
+
+    function applySocraticQuestion() {
+        const selectedQuestion = document.getElementById('socraticQuestionSelect').value;
+        if(selectedQuestion) {
+            const currentAns = document.getElementById('socraticAnswer').value;
+            if(!currentAns.includes(selectedQuestion)) {
+                document.getElementById('socraticAnswer').value = `[שאלה נבחרת: ${selectedQuestion}]\n` + currentAns;
+            }
+        }
+    }
+
+    function applyAlternativeGlasses() {
+        const selectedGlasses = document.getElementById('glassesSelect').value;
+        if(selectedGlasses) {
+            document.getElementById('newThoughtInput').value = selectedGlasses;
+        }
     }
 
     async function loginUser() {
@@ -421,7 +485,7 @@
 
         const logData = {
             userId: currentUser.uid,
-            dateStr: timestamp.toISOString().split('T')[0],
+            dateStr: timestamp.toISOString().split('T'),
             timestamp: timestamp.toISOString(),
             event: eventVal,
             bugCategory: bugCatVal,
@@ -444,6 +508,7 @@ TIMESTAMP: ${timestamp.toLocaleString('he-IL')}
 EVENT: "${eventVal}"
 BUG_TYPE: "${bugCatVal}"
 AUTOMATIC_THOUGHT: "${thoughtVal}"
+SOCRATIC_REFLECTION: "${socraticVal}"
 NEW_MENTAL_CODE: "${newThoughtVal}"
 ACTION_STEP: "${actionVal}"
 ------------------------------------
