@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Mental Debugger 🛠️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-cyan: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-purple: #c084fc;
+            --accent-red: #f87171;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Assistant', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: #090d16;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header .title {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.1rem;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background-color: #ef4444; }
+        .dot.yellow { background-color: #f59e0b; }
+        .dot.green { background-color: #22c55e; }
+
+        .progress-bar-container {
+            height: 4px;
+            background-color: var(--border-color);
+            width: 100%;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            width: 20%;
+            transition: width 0.4s ease;
+        }
+
+        .content {
+            padding: 32px 28px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-number {
+            font-family: 'Fira Code', monospace;
+            color: var(--accent-purple);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        p.desc {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+            resize: vertical;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        }
+
+        .prompt-box {
+            background-color: rgba(56, 189, 248, 0.08);
+            border-right: 4px solid var(--accent-cyan);
+            padding: 14px 18px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 32px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
+            color: #0f172a;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-main);
+            background-color: #334155;
+        }
+
+        .code-block {
+            background-color: #090d16;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-green);
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .badge-success {
+            display: inline-block;
+            background-color: rgba(74, 222, 128, 0.15);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="title">🛠️ MentalDebugger.exe</div>
+    </div>
+    
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="content">
+        
+        <!-- STEP 1: EVENT (האירוע) -->
+        <div class="step active" id="step1">
+            <div class="step-number">// STEP 01: INPUT_EVENT</div>
+            <h2>מה קרה בקוד?</h2>
+            <p class="desc">תאר/י בקצרה את האירוע העובדתי שגרם לתסכול במעבדה.</p>
+            
+            <div class="input-group">
+                <label for="eventInput">האירוע העובדתי (לדוגמה: "הופיעה הודעת שגיאה אדומה 4 פעמים"):</label>
+                <textarea id="eventInput" rows="3" placeholder="הקוד לא רץ / יש באג בלופ / לא הבנתי את התרגיל..."></textarea>
+            </div>
+
+            <div class="btn-container">
+                <div></div>
+                <button class="btn btn-primary" onclick="nextStep(2)">המשך להרצת ה-Debugger ➔</button>
+            </div>
+        </div>
+
+        <!-- STEP 2: AUTOMATIC THOUGHT (הפרשנות האוטומטית) -->
+        <div class="step" id="step2">
+            <div class="step-number">// STEP 02: AUTOMATIC_THOUGHT</div>
+            <h2>מה המחשבה האוטומטית שעברה בראש?</h2>
+            <p class="desc">כשאנחנו נתקלים בבאג, המוח מריץ לעיתים "משקפיים מטושטשות" או מחשבה אוטומטית מעכבת.</p>
+            
+            <div class="input-group">
+                <label for="thoughtInput">המחשבה האוטומטית (לדוגמה: "אני לא מספיק טובה / זה בלתי אפשרי"):</label>
+                <textarea id="thoughtInput" rows="3" placeholder="אני לעולם לא אבין את זה / כולם מבינים ורק אני גרוע..."></textarea>
+            </div>
+
+            <div class="btn-container">
+                <button class="btn btn-secondary" onclick="nextStep(1)">🡨 חזרה</button>
+                <button class="btn btn-primary" onclick="nextStep(3)">הפעל תשאול סוקרטי ➔</button>
+            </div>
+        </div>
+
+        <!-- STEP 3: SOCRATIC QUESTIONING (התשאול הסוקרטי) -->
+        <div class="step" id="step3">
+            <div class="step-number">// STEP 03: SOCRATIC_DEBUGGING</div>
+            <h2>מריצים תשאול סוקרטי על המחשבה 🔍</h2>
+            <p class="desc">בחר/י שאלה אחת או יותר שיעזרו לך לערער על המחשבות השליליות ולהביט מחדש בעובדות:</p>
+            
+            <div class="prompt-box">
+                <strong>🔍 בלש הראיות:</strong> האם המחשבה הזו היא עובדה מוחלטת או הרגשה רגעית? אילו הוכחות יש לך בעדה ונגדה?<br><br>
+                <strong>🤝 מבחן החבר:</strong> אם חבר/ה בכיתה היו נתקלים בבאג הזה, מה היית אומר/ת להם?<br><br>
+                <strong>📐 פרופורציות:</strong> האם באג אחד אומר שאינך יודע/ת לתכנת, או שזה פשוט אתגר שמצריך פירוק מחדש?
+            </div>
+
+            <div class="input-group">
+                <label for="socraticAnswer">מה הראיות או התובנות שגילית בערעור המחשבה?</label>
+                <textarea id="socraticAnswer" rows="3" placeholder="כשאני חושב/ת על זה, כבר פתרתי בעיות מורכבות בעבר... / אם חבר היה נתקע הייתי מציע/ה לו לעצור ולבדוק שורה-שורה..."></textarea>
+            </div>
+
+            <div class="btn-container">
+                <button class="btn btn-secondary" onclick="nextStep(2)">🡨 חזרה</button>
+                <button class="btn btn-primary" onclick="nextStep(4)">נסח קוד מחשבתי חדש ➔</button>
+            </div>
+        </div>
+
+        <!-- STEP 4: REFRAMING (הקוד המחשבתי החדש) -->
+        <div class="step" id="step4">
+            <div class="step-number">// STEP 04: REFRAMED_CODE</div>
+            <h2>ניסוח "קוד מחשבתי חדש" ומקדם 💡</h2>
+            <p class="desc">החליפו את הפרשנות האוטומטית בפרשנות מאוזנת ומקדמת ובצעד קטן שניתן לעשות כעת בקוד.</p>
+            
+            <div class="input-group">
+                <label for="newThoughtInput">הפרשנות החדשה והמקדמת שלי:</label>
+                <textarea id="newThoughtInput" rows="2" placeholder="הקוד לא עובד כרגע וזה בסדר - זה רק אומר שזה הזמן לפרק את הבעיה לשלבים קטנים יותר."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label for="actionInput">צעד מעשי קטן שנעשה עכשיו (Action Step):</label>
+                <input type="text" id="actionInput" placeholder="אקח פסק זמן של 2 דקות / אבדוק את טבלת המעקב / אבקש הכוונה ממוקדת.">
+            </div>
+
+            <div class="btn-container">
+                <button class="btn btn-secondary" onclick="nextStep(3)">🡨 חזרה</button>
+                <button class="btn btn-primary" onclick="generateSummary()">קמפל תוצאות (Compile) ➔</button>
+            </div>
+        </div>
+
+        <!-- STEP 5: SUMMARY (קמפול והצלחה) -->
+        <div class="step" id="step5">
+            <div class="badge-success">✔ CODE COMPILED SUCCESSFULLY (200 OK)</div>
+            <h2>הקוד המחשבתי החדש עודכן בהצלחה! 🚀</h2>
+            <p class="desc">הנה סיכום ה-Debug המחשבתי שביצעת כעת. תוכל/י לשמור אותו או לחזור לקוד מעמדה מרוכזת ומקודמת.</p>
+
+            <div class="code-block" id="codeSummary">
+// Mental Debugger Log Result
+            </div>
+
+            <div class="prompt-box" style="background-color: rgba(74, 222, 128, 0.08); border-right-color: var(--accent-green);">
+                💡 <strong>זכרו:</strong> הרגש שלכם הוא לא שגיאה שצריך למחוק – הוא ה-Debugger הפנימי שלכם: זהו אותו, הקשיבו למסר שלו, ותגלו שאין בעיה שאי אפשר לפתור!
+            </div>
+
+            <div class="btn-container">
+                <button class="btn btn-secondary" onclick="resetApp()">🔄 הרץ Debugger חדש</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ הדפס / שמור כ-PDF</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+
+    function nextStep(step) {
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById(`step${step}`).classList.add('active');
+        currentStep = step;
+        
+        // Update progress bar
+        const progress = (step / 5) * 100;
+        document.getElementById('progressBar').style.width = `${progress}%`;
+    }
+
+    function generateSummary() {
+        const eventVal = document.getElementById('eventInput').value || 'לא צוין';
+        const thoughtVal = document.getElementById('thoughtInput').value || 'לא צוין';
+        const socraticVal = document.getElementById('socraticAnswer').value || 'לא צוין';
+        const newThoughtVal = document.getElementById('newThoughtInput').value || 'לא צוין';
+        const actionVal = document.getElementById('actionInput').value || 'לא צוין';
+
+        const summaryText = 
+`/* MENTAL DEBUGGER SUMMARY REPORT */
+------------------------------------
+[1] EVENT: "${eventVal}"
+[2] OLD_THOUGHT: "${thoughtVal}"
+[3] SOCRATIC_REFLECTION: "${socraticVal}"
+------------------------------------
+[4] NEW_MENTAL_CODE: "${newThoughtVal}"
+[5] ACTION_STEP: "${actionVal}"
+------------------------------------
+STATUS: Mental state reframed. Ready to code!`;
+
+        document.getElementById('codeSummary').innerText = summaryText;
+        nextStep(5);
+    }
+
+    function resetApp() {
+        document.getElementById('eventInput').value = '';
+        document.getElementById('thoughtInput').value = '';
+        document.getElementById('socraticAnswer').value = '';
+        document.getElementById('newThoughtInput').value = '';
+        document.getElementById('actionInput').value = '';
+        nextStep(1);
+    }
+</script>
+
+</body>
+</html>
